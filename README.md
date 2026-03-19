@@ -61,7 +61,7 @@ http://localhost:5000
 
 ## Run with Docker
 
-This repo includes a Dockerfile and Compose setup so someone can clone the repo and run it without manually installing SQLite.
+This repo includes a Dockerfile and Compose setup so the repo can be cloned and run without manually installing SQLite.
 
 ### Prerequisites
 
