@@ -1,0 +1,54 @@
+@model List<Invoice>
+@{
+    ViewData["Title"] = "Invoices";
+}
+
+<div class="metric-grid">
+    <div class="metric-card">
+        <span class="metric-label">Outstanding</span>
+        <strong class="metric-value">@Model.Where(x => x.Status == InvoiceStatus.Sent || x.Status == InvoiceStatus.Overdue).Sum(x => x.Total).ToString("C")</strong>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Paid</span>
+        <strong class="metric-value">@Model.Where(x => x.Status == InvoiceStatus.Paid).Sum(x => x.Total).ToString("C")</strong>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Invoices</span>
+        <strong class="metric-value">@Model.Count</strong>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Invoice</th>
+                    <th>Case</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Issued</th>
+                    <th>Due</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.InvoiceNumber</td>
+                    <td>
+                        <a asp-controller="Cases" asp-action="Details" asp-route-id="@item.CaseFileId">@item.CaseFile?.CaseNumber</a>
+                        <div class="subtle">@item.CaseFile?.Title</div>
+                    </td>
+                    <td>@item.CaseFile?.Client?.Name</td>
+                    <td><span class="badge">@item.Status</span></td>
+                    <td>@item.IssuedOn.ToString("MMM dd, yyyy")</td>
+                    <td>@item.DueOn.ToString("MMM dd, yyyy")</td>
+                    <td>@item.Total.ToString("C")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

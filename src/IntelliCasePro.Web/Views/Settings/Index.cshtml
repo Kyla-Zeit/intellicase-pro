@@ -1,0 +1,32 @@
+@model SettingsViewModel
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<div class="card form-card">
+    <form asp-action="Save" method="post" class="form-grid">
+        <div>
+            <label asp-for="AgencyName"></label>
+            <input asp-for="AgencyName" />
+        </div>
+        <div>
+            <label asp-for="DefaultJurisdiction"></label>
+            <input asp-for="DefaultJurisdiction" />
+        </div>
+        <div class="full checkbox-line">
+            <input asp-for="RequireEvidenceHash" type="checkbox" />
+            <label asp-for="RequireEvidenceHash">Require evidence hash values for new evidence</label>
+        </div>
+        <div class="full checkbox-line">
+            <input asp-for="EnableBillingReminders" type="checkbox" />
+            <label asp-for="EnableBillingReminders">Enable billing reminders</label>
+        </div>
+        <div class="full checkbox-line">
+            <input asp-for="EnableFieldAlerts" type="checkbox" />
+            <label asp-for="EnableFieldAlerts">Enable field alerts</label>
+        </div>
+        <div class="full form-actions">
+            <button class="button dark" type="submit">Save Settings</button>
+        </div>
+    </form>
+</div>

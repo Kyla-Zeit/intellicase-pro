@@ -1,0 +1,57 @@
+@model CaseListViewModel
+@{
+    ViewData["Title"] = "Cases";
+}
+
+<div class="card">
+    <form method="get" class="filter-bar">
+        <input type="text" name="search" value="@Model.Search" placeholder="Search case number, client, title, subject" />
+        <select asp-for="Status" asp-items="Model.StatusOptions">
+            <option value="">All statuses</option>
+        </select>
+        <button class="button dark" type="submit">Filter</button>
+        <a class="button" asp-action="Create">New Case</a>
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Case</th>
+                    <th>Client</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Lead</th>
+                    <th>Last Activity</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.Cases)
+            {
+                var detailsUrl = Url.Action("Details", "Cases", new { id = item.Id });
+
+                <tr class="clickable-row"
+                    onclick="window.location.href='@detailsUrl'"
+                    onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href='@detailsUrl'; }"
+                    tabindex="0"
+                    role="link"
+                    aria-label="Open case @item.CaseNumber">
+                    <td>
+                        <div class="case-link">@item.CaseNumber</div>
+                        <div class="subtle">@item.Title</div>
+                    </td>
+                    <td>@item.Client?.Name</td>
+                    <td>@item.SubjectName</td>
+                    <td><span class="badge">@item.Status</span></td>
+                    <td><span class="priority @item.Priority.ToString().ToLower()">@item.Priority</span></td>
+                    <td>@item.LeadInvestigator?.FullName</td>
+                    <td>@item.LastActivityOn.ToString("MMM dd, yyyy")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

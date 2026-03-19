@@ -1,0 +1,317 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="dashboard-hero card">
+    <div>
+        <div class="eyebrow">Daily Briefing</div>
+        <h2>Welcome back, @Model.UserName.</h2>
+        <p class="lead">
+            IntelliCase Pro was pitched around better case management, evidence control, time tracking, and more useful reporting.
+        </p>
+        <div class="hero-pills">
+            <span class="hero-pill">@Model.ActiveFieldEventsToday field events today</span>
+            <span class="hero-pill">@Model.DueSoonCases cases due in 7 days</span>
+            <span class="hero-pill">@Model.OpenTasks open tasks</span>
+        </div>
+    </div>
+    <div class="hero-actions">
+        <a class="button" asp-controller="Cases" asp-action="Create">Open New Case</a>
+        <a class="button" asp-controller="Expenses" asp-action="Index">Log Time &amp; Expenses</a>
+        <a class="button" asp-controller="Evidence" asp-action="Index">Review Evidence</a>
+        <a class="button" asp-controller="Reports" asp-action="Index">View Analytics</a>
+    </div>
+</div>
+
+<div class="metric-grid">
+    <div class="metric-card">
+        <span class="metric-label">Open Cases</span>
+        <strong class="metric-value">@Model.OpenCases</strong>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Evidence Items</span>
+        <strong class="metric-value">@Model.EvidenceCount</strong>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Billable Hours MTD</span>
+        <strong class="metric-value">@Model.BillableHoursThisMonth.ToString("0.0")</strong>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Unbilled Time Value</span>
+        <strong class="metric-value">@Model.UnbilledTimeValue.ToString("C0")</strong>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Revenue MTD</span>
+        <strong class="metric-value">@Model.MonthlyRevenue.ToString("C0")</strong>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Outstanding A/R</span>
+        <strong class="metric-value">@Model.OutstandingReceivables.ToString("C0")</strong>
+    </div>
+    <div class="metric-card alert">
+        <span class="metric-label">Overdue Tasks</span>
+        <strong class="metric-value">@Model.OverdueTasks</strong>
+    </div>
+</div>
+
+<div class="content-grid two-col">
+    <div class="card">
+        <div class="card-head">
+            <h2>Priority Follow-Ups</h2>
+            <a class="button small ghost" asp-controller="Cases" asp-action="Index">All Cases</a>
+        </div>
+        @if (Model.PriorityTasks.Any())
+        {
+            <div class="stack-list">
+            @foreach (var task in Model.PriorityTasks)
+            {
+                var isOverdue = task.DueDate.HasValue && task.DueDate.Value.Date < DateTime.Today;
+                <article class="stack-item priority-item @(isOverdue ? "overdue" : "")">
+                    <div>
+                        <strong>@task.Title</strong>
+                        <div class="subtle">@(task.CaseFile?.CaseNumber ?? "No case") · @task.AssignedTo</div>
+                        @if (!string.IsNullOrWhiteSpace(task.Notes))
+                        {
+                            <div class="subtle">@task.Notes</div>
+                        }
+                    </div>
+                    <div class="stack-meta">
+                        <div class="@(isOverdue ? "text-danger" : "")">@(task.DueDate?.ToString("MMM dd") ?? "No due date")</div>
+                        @if (task.CaseFileId > 0)
+                        {
+                            <a asp-controller="Cases" asp-action="Details" asp-route-id="@task.CaseFileId">Open case</a>
+                        }
+                    </div>
+                </article>
+            }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">No open follow-ups. A rare and suspicious event.</div>
+        }
+    </div>
+
+    <div class="card">
+        <div class="card-head">
+            <h2>Active Investigations</h2>
+            <a class="button small" asp-controller="Cases" asp-action="Create">New Case</a>
+        </div>
+        @if (Model.ActiveCases.Any())
+        {
+            <div class="table-wrap">
+                <table class="data-table compact">
+                    <thead>
+                        <tr>
+                            <th>Case</th>
+                            <th>Client</th>
+                            <th>Status</th>
+                            <th>Lead</th>
+                            <th>Due</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.ActiveCases)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-controller="Cases" asp-action="Details" asp-route-id="@item.Id">@item.CaseNumber</a>
+                                <div class="subtle">@item.Title</div>
+                            </td>
+                            <td>@item.Client?.Name</td>
+                            <td><span class="badge">@item.Status</span></td>
+                            <td>@item.LeadInvestigator?.FullName</td>
+                            <td>@(item.DueDate?.ToString("MMM dd, yyyy") ?? "—")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">No active cases yet.</div>
+        }
+    </div>
+</div>
+
+<div class="content-grid two-col">
+    <div class="card">
+        <div class="card-head">
+            <h2>Status Pipeline</h2>
+            <a class="button small ghost" asp-controller="Reports" asp-action="Index">Full Reports</a>
+        </div>
+        @if (Model.StatusBreakdown.Any())
+        {
+            <div class="status-stack">
+            @foreach (var item in Model.StatusBreakdown)
+            {
+                <div class="status-row">
+                    <div class="status-topline">
+                        <strong>@item.Label</strong>
+                        <span>@item.Count case@(item.Count == 1 ? "" : "s") · @item.Percentage.ToString("0.#")%</span>
+                    </div>
+                    <div class="status-bar-track">
+                        <div class="status-bar-fill" style="width:@item.Percentage.ToString(System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                    </div>
+                </div>
+            }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">No active case distribution to show yet.</div>
+        }
+    </div>
+
+    <div class="card">
+        <div class="card-head">
+            <h2>Investigator Workload</h2>
+            <a class="button small ghost" asp-controller="Settings" asp-action="Index">Team Settings</a>
+        </div>
+        @if (Model.InvestigatorWorkloads.Any())
+        {
+            <div class="workload-grid">
+            @foreach (var item in Model.InvestigatorWorkloads)
+            {
+                <article class="workload-card">
+                    <strong>@item.Name</strong>
+                    <div class="subtle">@item.Title</div>
+                    <div class="workload-stats">
+                        <div><span>Active cases</span><strong>@item.ActiveCases</strong></div>
+                        <div><span>Open tasks</span><strong>@item.AssignedTasks</strong></div>
+                        <div><span>Hours / 7 days</span><strong>@item.HoursLast7Days.ToString("0.0")</strong></div>
+                    </div>
+                </article>
+            }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">No investigator workload data yet.</div>
+        }
+    </div>
+</div>
+
+<div class="content-grid two-col">
+    <div class="card">
+        <div class="card-head">
+            <h2>Upcoming Field Activity</h2>
+            <a class="button small ghost" asp-controller="Calendar" asp-action="Index">Full Calendar</a>
+        </div>
+        @if (Model.UpcomingEvents.Any())
+        {
+            <div class="stack-list">
+            @foreach (var item in Model.UpcomingEvents)
+            {
+                <article class="stack-item">
+                    <div>
+                        <strong>@item.Title</strong>
+                        <div class="subtle">@item.Category · @(item.CaseFile?.CaseNumber ?? "General")</div>
+                        <div class="subtle">@item.Location</div>
+                    </div>
+                    <div class="stack-meta">
+                        <div>@item.StartsAt.ToString("MMM dd")</div>
+                        <div>@item.StartsAt.ToString("h:mm tt")</div>
+                    </div>
+                </article>
+            }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">Nothing on the calendar yet.</div>
+        }
+    </div>
+
+    <div class="card">
+        <div class="card-head">
+            <h2>Recent Evidence</h2>
+            <a class="button small ghost" asp-controller="Evidence" asp-action="Index">Evidence Register</a>
+        </div>
+        @if (Model.RecentEvidence.Any())
+        {
+            <div class="stack-list">
+            @foreach (var item in Model.RecentEvidence)
+            {
+                <article class="stack-item">
+                    <div>
+                        <strong>@item.ReferenceNumber · @item.Title</strong>
+                        <div class="subtle">@item.Type · @(item.CaseFile?.CaseNumber ?? "No case")</div>
+                        <div class="subtle">@item.StorageLocation</div>
+                    </div>
+                    <div class="stack-meta">
+                        <div>@item.AddedBy</div>
+                        <div>@item.AddedOn.ToString("MMM dd")</div>
+                    </div>
+                </article>
+            }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">No evidence has been logged yet.</div>
+        }
+    </div>
+</div>
+
+<div class="content-grid two-col">
+    <div class="card">
+        <div class="card-head">
+            <h2>Recent Internal Notes</h2>
+            <a class="button small ghost" asp-controller="Cases" asp-action="Index">Open Case File</a>
+        </div>
+        @if (Model.RecentNotes.Any())
+        {
+            <div class="stack-list">
+            @foreach (var note in Model.RecentNotes)
+            {
+                <article class="note-card">
+                    <div class="note-top">
+                        <strong>@note.Author</strong>
+                        <span>@note.CreatedOn.ToString("MMM dd, yyyy")</span>
+                    </div>
+                    <div class="subtle">@(note.CaseFile?.CaseNumber ?? "No case")</div>
+                    <p>@note.Text</p>
+                </article>
+            }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">No recent notes.</div>
+        }
+    </div>
+
+    <div class="card">
+        <div class="card-head">
+            <h2>Recent Invoices</h2>
+            <a class="button small ghost" asp-controller="Invoices" asp-action="Index">Billing</a>
+        </div>
+        @if (Model.RecentInvoices.Any())
+        {
+            <div class="stack-list">
+            @foreach (var item in Model.RecentInvoices)
+            {
+                var total = item.HoursAmount + item.ExpenseAmount + item.TaxAmount;
+                <article class="stack-item">
+                    <div>
+                        <strong>@item.InvoiceNumber</strong>
+                        <div class="subtle">@(item.CaseFile?.CaseNumber ?? "Unknown case")</div>
+                        <div class="subtle">Issued @item.IssuedOn.ToString("MMM dd, yyyy")</div>
+                    </div>
+                    <div class="stack-meta">
+                        <div>@total.ToString("C")</div>
+                        <div><span class="badge">@item.Status</span></div>
+                    </div>
+                </article>
+            }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">No invoice activity yet.</div>
+        }
+    </div>
+</div>

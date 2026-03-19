@@ -1,0 +1,64 @@
+@model ReportsViewModel
+@{
+    ViewData["Title"] = "Reports";
+    var maxRevenue = Math.Max(1m, Model.RevenueSeries.Any() ? Model.RevenueSeries.Max(x => x.Amount) : 1m);
+}
+
+<div class="metric-grid">
+    <div class="metric-card">
+        <span class="metric-label">Total Revenue</span>
+        <strong class="metric-value">@Model.TotalRevenue.ToString("C")</strong>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Cases Closed</span>
+        <strong class="metric-value">@Model.CasesClosedThisYear</strong>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Average Case Value</span>
+        <strong class="metric-value">@Model.AverageCaseValue.ToString("C")</strong>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Closure Rate</span>
+        <strong class="metric-value">@Model.ClosureRate%</strong>
+    </div>
+</div>
+
+<div class="content-grid reports-grid">
+    <div class="card">
+        <h2>Case Distribution</h2>
+        <div class="chart-row">
+            <div class="pie-chart" style="background: @Model.CaseDistributionGradient;"></div>
+            <div class="legend">
+                @foreach (var item in Model.CaseDistribution)
+                {
+                    <div class="legend-row">
+                        <span class="legend-color" style="background:@item.Color"></span>
+                        <span>@item.Label</span>
+                        <strong>@item.Value</strong>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Revenue</h2>
+        <div class="bar-chart">
+            @foreach (var point in Model.RevenueSeries)
+            {
+                var height = Math.Max(10m, Math.Round(point.Amount / maxRevenue * 100m, 1));
+                <div class="bar-col">
+                    <div class="bar" style="height:@height%"></div>
+                    <span>@point.Month</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card centered">
+        <h2>Cases Closed</h2>
+        <div class="ring-chart" style="background:@Model.ClosureGradient;">
+            <div class="ring-center">@Model.ClosureRate%</div>
+        </div>
+    </div>
+</div>

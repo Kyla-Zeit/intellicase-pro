@@ -1,0 +1,292 @@
+@model CaseFormModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "New Case";
+    ViewData["Subtitle"] = "Run intake like a real investigation shop instead of a random text box with hopes and prayers.";
+    var clients = ViewBag.Clients as List<SelectListItem> ?? new List<SelectListItem>();
+    var investigators = ViewBag.Investigators as List<SelectListItem> ?? new List<SelectListItem>();
+    var secondaryInvestigators = new List<SelectListItem> { new SelectListItem("None yet", "") };
+    secondaryInvestigators.AddRange(investigators);
+}
+
+<div class="card form-card">
+    <div class="create-case-hero">
+        <div>
+            <div class="eyebrow">Case Intake</div>
+            <h2>Open a new investigation file</h2>
+            <p class="subtle no-margin">This version does actual intake work: validation, checklist capture, starter tasks, optional client creation, and first evidence logging.</p>
+        </div>
+        <div class="hero-pills compact-pills">
+            <div class="hero-pill">
+                <span>Auto Case #</span>
+                <strong>@Model.CaseNumber</strong>
+            </div>
+            <div class="hero-pill">
+                <span>Default Follow-up</span>
+                <strong>@(Model.DueDate?.ToString("MMM d, yyyy") ?? "Set due date")</strong>
+            </div>
+        </div>
+    </div>
+
+    <form asp-action="Create" method="post" class="form-grid intake-form-grid">
+        <div asp-validation-summary="ModelOnly" class="validation-summary full"></div>
+
+        <section class="form-section full">
+            <div class="section-head">
+                <div>
+                    <h3>File setup</h3>
+                    <p class="subtle no-margin">The core identifiers and who owns the file.</p>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div>
+                    <label asp-for="CaseNumber"></label>
+                    <input asp-for="CaseNumber" readonly />
+                    <span class="field-help">Auto-generated so nobody invents chaos in the numbering.</span>
+                    <span asp-validation-for="CaseNumber" class="field-validation"></span>
+                </div>
+                <div>
+                    <label asp-for="IntakeType"></label>
+                    <select asp-for="IntakeType" asp-items="Html.GetEnumSelectList<CaseIntakeType>()"></select>
+                    <span class="field-help">Used to create a sensible starter task.</span>
+                </div>
+                <div>
+                    <label asp-for="Title"></label>
+                    <input asp-for="Title" placeholder="Benefit fraud surveillance - Hamilton site checks" />
+                    <span asp-validation-for="Title" class="field-validation"></span>
+                </div>
+                <div>
+                    <label asp-for="SubjectName"></label>
+                    <input asp-for="SubjectName" placeholder="Subject, target, company, or insured person" />
+                    <span asp-validation-for="SubjectName" class="field-validation"></span>
+                </div>
+                <div class="full">
+                    <label asp-for="Summary"></label>
+                    <textarea asp-for="Summary" rows="4" placeholder="What happened, what the client wants, known risks, and the immediate objective."></textarea>
+                    <span asp-validation-for="Summary" class="field-validation"></span>
+                </div>
+                <div>
+                    <label asp-for="LeadInvestigatorId"></label>
+                    <select asp-for="LeadInvestigatorId" asp-items="investigators"></select>
+                    <span asp-validation-for="LeadInvestigatorId" class="field-validation"></span>
+                </div>
+                <div>
+                    <label asp-for="SecondaryInvestigatorId"></label>
+                    <select asp-for="SecondaryInvestigatorId" asp-items="secondaryInvestigators"></select>
+                    <span asp-validation-for="SecondaryInvestigatorId" class="field-validation"></span>
+                </div>
+                <div>
+                    <label asp-for="Status"></label>
+                    <select asp-for="Status" asp-items="Html.GetEnumSelectList<CaseStatus>()"></select>
+                </div>
+                <div>
+                    <label asp-for="Priority"></label>
+                    <select asp-for="Priority" asp-items="Html.GetEnumSelectList<PriorityLevel>()"></select>
+                </div>
+            </div>
+        </section>
+
+        <section class="form-section full">
+            <div class="section-head">
+                <div>
+                    <h3>Client and billing</h3>
+                    <p class="subtle no-margin">Choose an existing client or create one inline because separate screens are for cowards.</p>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="full checkbox-line toggle-line">
+                    <input asp-for="CreateNewClient" type="checkbox" data-toggle-target="newClientPanel" />
+                    <label asp-for="CreateNewClient"></label>
+                </div>
+                <div id="existingClientPanel" class="full toggle-panel">
+                    <label asp-for="ClientId">Existing Client</label>
+                    <select asp-for="ClientId" asp-items="clients">
+                        <option value="0">Select a client</option>
+                    </select>
+                    <span asp-validation-for="ClientId" class="field-validation"></span>
+                </div>
+                <div id="newClientPanel" class="full toggle-panel hidden-panel">
+                    <div class="form-grid nested-grid">
+                        <div>
+                            <label asp-for="NewClientName"></label>
+                            <input asp-for="NewClientName" placeholder="Claims manager, lawyer, or client name" />
+                            <span asp-validation-for="NewClientName" class="field-validation"></span>
+                        </div>
+                        <div>
+                            <label asp-for="NewClientCompanyName"></label>
+                            <input asp-for="NewClientCompanyName" placeholder="Firm, insurer, or business name" />
+                            <span asp-validation-for="NewClientCompanyName" class="field-validation"></span>
+                        </div>
+                        <div>
+                            <label asp-for="NewClientEmail"></label>
+                            <input asp-for="NewClientEmail" placeholder="client@example.com" />
+                            <span asp-validation-for="NewClientEmail" class="field-validation"></span>
+                        </div>
+                        <div>
+                            <label asp-for="NewClientPhone"></label>
+                            <input asp-for="NewClientPhone" placeholder="(555) 555-5555" />
+                            <span asp-validation-for="NewClientPhone" class="field-validation"></span>
+                        </div>
+                        <div class="full">
+                            <label asp-for="NewClientAddress"></label>
+                            <input asp-for="NewClientAddress" placeholder="Mailing address" />
+                            <span asp-validation-for="NewClientAddress" class="field-validation"></span>
+                        </div>
+                        <div class="full">
+                            <label asp-for="NewClientNotes"></label>
+                            <textarea asp-for="NewClientNotes" rows="3" placeholder="Anything useful about reporting preferences, billing, or communication boundaries."></textarea>
+                            <span asp-validation-for="NewClientNotes" class="field-validation"></span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label asp-for="RetainerAmount"></label>
+                    <input asp-for="RetainerAmount" type="number" step="0.01" min="0" />
+                    <span asp-validation-for="RetainerAmount" class="field-validation"></span>
+                </div>
+                <div>
+                    <label asp-for="Budget"></label>
+                    <input asp-for="Budget" type="number" step="0.01" min="0" />
+                    <span asp-validation-for="Budget" class="field-validation"></span>
+                </div>
+                <div class="full checkbox-line">
+                    <input asp-for="IsBillable" type="checkbox" />
+                    <label asp-for="IsBillable"></label>
+                </div>
+            </div>
+        </section>
+
+        <section class="form-section full">
+            <div class="section-head">
+                <div>
+                    <h3>Scheduling and intake controls</h3>
+                    <p class="subtle no-margin">Capture the boring important stuff people forget until it hurts.</p>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div>
+                    <label asp-for="OpenedOn"></label>
+                    <input asp-for="OpenedOn" type="date" />
+                    <span asp-validation-for="OpenedOn" class="field-validation"></span>
+                </div>
+                <div>
+                    <label asp-for="DueDate"></label>
+                    <input asp-for="DueDate" type="date" />
+                    <span asp-validation-for="DueDate" class="field-validation"></span>
+                </div>
+                <div>
+                    <label asp-for="Jurisdiction"></label>
+                    <input asp-for="Jurisdiction" />
+                    <span asp-validation-for="Jurisdiction" class="field-validation"></span>
+                </div>
+                <div class="full">
+                    <label asp-for="IntakeInstructions"></label>
+                    <textarea asp-for="IntakeInstructions" rows="3" placeholder="Special reporting cadence, legal cautions, safety notes, or field restrictions."></textarea>
+                    <span asp-validation-for="IntakeInstructions" class="field-validation"></span>
+                </div>
+                <div class="full checklist-grid">
+                    <label class="full checklist-title">Intake checklist</label>
+                    <label class="check-card">
+                        <input asp-for="ConflictCheckComplete" type="checkbox" />
+                        <span>Conflict check completed</span>
+                    </label>
+                    <label class="check-card">
+                        <input asp-for="AuthorizationSigned" type="checkbox" />
+                        <span>Authorization signed</span>
+                    </label>
+                    <label class="check-card">
+                        <input asp-for="RetainerReceived" type="checkbox" />
+                        <span>Retainer received</span>
+                    </label>
+                    <label class="check-card">
+                        <input asp-for="EvidenceReceived" type="checkbox" />
+                        <span>Initial evidence received</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <section class="form-section full">
+            <div class="section-head">
+                <div>
+                    <h3>Optional first evidence log</h3>
+                    <p class="subtle no-margin">Not real file upload yet, but enough to register the first item and stop sticky-note evidence management.</p>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="full checkbox-line toggle-line">
+                    <input asp-for="CreateInitialEvidence" type="checkbox" data-toggle-target="initialEvidencePanel" />
+                    <label asp-for="CreateInitialEvidence"></label>
+                </div>
+                <div id="initialEvidencePanel" class="full toggle-panel hidden-panel">
+                    <div class="form-grid nested-grid">
+                        <div>
+                            <label asp-for="InitialEvidenceTitle"></label>
+                            <input asp-for="InitialEvidenceTitle" placeholder="Surveillance brief, claimant photo, witness email" />
+                            <span asp-validation-for="InitialEvidenceTitle" class="field-validation"></span>
+                        </div>
+                        <div>
+                            <label asp-for="InitialEvidenceType"></label>
+                            <select asp-for="InitialEvidenceType" asp-items="Html.GetEnumSelectList<EvidenceType>()"></select>
+                        </div>
+                        <div>
+                            <label asp-for="InitialEvidenceFileName"></label>
+                            <input asp-for="InitialEvidenceFileName" placeholder="IMG_2044.jpg or intake-email.msg" />
+                            <span asp-validation-for="InitialEvidenceFileName" class="field-validation"></span>
+                        </div>
+                        <div>
+                            <label asp-for="InitialEvidenceStorageLocation"></label>
+                            <input asp-for="InitialEvidenceStorageLocation" />
+                            <span asp-validation-for="InitialEvidenceStorageLocation" class="field-validation"></span>
+                        </div>
+                        <div class="full">
+                            <label asp-for="InitialEvidenceDescription"></label>
+                            <textarea asp-for="InitialEvidenceDescription" rows="3" placeholder="Where it came from, what it shows, and any chain-of-custody caveats."></textarea>
+                            <span asp-validation-for="InitialEvidenceDescription" class="field-validation"></span>
+                        </div>
+                        <div>
+                            <label asp-for="InitialEvidenceTags"></label>
+                            <input asp-for="InitialEvidenceTags" placeholder="intake, subject, witness" />
+                            <span asp-validation-for="InitialEvidenceTags" class="field-validation"></span>
+                        </div>
+                        <div class="checkbox-line align-end">
+                            <input asp-for="InitialEvidenceSensitive" type="checkbox" />
+                            <label asp-for="InitialEvidenceSensitive"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="full form-actions sticky-actions">
+            <a class="button ghost" asp-action="Index">Cancel</a>
+            <button class="button dark" type="submit">Create Case</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const syncToggle = (checkbox) => {
+                const targetId = checkbox.dataset.toggleTarget;
+                if (!targetId) return;
+                const panel = document.getElementById(targetId);
+                if (!panel) return;
+                panel.classList.toggle('hidden-panel', !checkbox.checked);
+
+                if (targetId === 'newClientPanel') {
+                    const existingPanel = document.getElementById('existingClientPanel');
+                    if (existingPanel) {
+                        existingPanel.classList.toggle('hidden-panel', checkbox.checked);
+                    }
+                }
+            };
+
+            document.querySelectorAll('[data-toggle-target]').forEach((checkbox) => {
+                syncToggle(checkbox);
+                checkbox.addEventListener('change', () => syncToggle(checkbox));
+            });
+        })();
+    </script>
+}

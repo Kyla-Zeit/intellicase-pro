@@ -1,0 +1,215 @@
+@model ExpensePageViewModel
+@{
+    ViewData["Title"] = "Expenses";
+}
+
+<div class="card">
+    <form method="get" class="filter-bar">
+        <select asp-for="SelectedCaseId" asp-items="Model.CaseOptions" name="caseId"></select>
+        <button class="button dark" type="submit">Load Case</button>
+        <a class="button ghost" href="#newTime">New Time Entry</a>
+        <a class="button ghost" href="#newExpense">New Expense</a>
+    </form>
+</div>
+
+@if (Model.SelectedCase is not null)
+{
+    <div class="card">
+        <div class="case-strip">
+            <div>
+                <div class="subtle">Client</div>
+                <strong>@Model.SelectedCase.Client?.Name</strong>
+            </div>
+            <div>
+                <div class="subtle">Case</div>
+                <strong>@Model.SelectedCase.CaseNumber</strong>
+            </div>
+            <div>
+                <div class="subtle">Opened</div>
+                <strong>@Model.SelectedCase.OpenedOn.ToString("MMM dd, yyyy")</strong>
+            </div>
+            <div>
+                <div class="subtle">Status</div>
+                <strong>@Model.SelectedCase.Status</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-grid two-col">
+        <div class="card">
+            <h2>Time Expenses</h2>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Notes</th>
+                            <th>Hours</th>
+                            <th>Rate</th>
+                            <th>Total</th>
+                            <th class="actions-col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.TimeEntries)
+                    {
+                        <tr>
+                            <td>@item.ActivityType</td>
+                            <td>@item.Notes</td>
+                            <td>@item.Hours.ToString("0.0")</td>
+                            <td>@item.Rate.ToString("C")</td>
+                            <td>@item.Amount.ToString("C")</td>
+                            <td class="row-action-cell">
+                                <form asp-action="DeleteTime" method="post" class="inline-delete-form" onsubmit="return confirm('Delete this time entry?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <input type="hidden" name="caseId" value="@Model.SelectedCaseId" />
+                                    <button type="submit" class="icon-button danger" title="Delete time entry" aria-label="Delete time entry">
+                                        <span aria-hidden="true">🗑</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Misc. Expenses</h2>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Description</th>
+                            <th>Qty</th>
+                            <th>Rate</th>
+                            <th>Total</th>
+                            <th class="actions-col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.ExpenseEntries)
+                    {
+                        <tr>
+                            <td>@item.Category</td>
+                            <td>@item.Description</td>
+                            <td>@item.Quantity</td>
+                            <td>@item.UnitCost.ToString("C")</td>
+                            <td>@item.Total.ToString("C")</td>
+                            <td class="row-action-cell">
+                                <form asp-action="DeleteExpense" method="post" class="inline-delete-form" onsubmit="return confirm('Delete this expense entry?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <input type="hidden" name="caseId" value="@Model.SelectedCaseId" />
+                                    <button type="submit" class="icon-button danger" title="Delete expense entry" aria-label="Delete expense entry">
+                                        <span aria-hidden="true">🗑</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card totals-card">
+        <h2>Entry Totals</h2>
+        <div class="metric-grid">
+            <div class="metric-card">
+                <span class="metric-label">Hours</span>
+                <strong class="metric-value">@Model.TotalHours.ToString("0.0")</strong>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Time</span>
+                <strong class="metric-value">@Model.TimeTotal.ToString("C")</strong>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Expenses</span>
+                <strong class="metric-value">@Model.ExpenseTotal.ToString("C")</strong>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Total</span>
+                <strong class="metric-value">@Model.GrandTotal.ToString("C")</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-grid two-col">
+        <div class="card form-card" id="newTime">
+            <h2>New Time Entry</h2>
+            <form asp-action="AddTime" method="post" class="form-grid">
+                <input type="hidden" asp-for="AddTimeEntry.CaseFileId" />
+                <div>
+                    <label asp-for="AddTimeEntry.Date">Date</label>
+                    <input asp-for="AddTimeEntry.Date" type="date" />
+                </div>
+                <div>
+                    <label asp-for="AddTimeEntry.InvestigatorName">Investigator</label>
+                    <input asp-for="AddTimeEntry.InvestigatorName" />
+                </div>
+                <div>
+                    <label asp-for="AddTimeEntry.ActivityType">Activity</label>
+                    <select asp-for="AddTimeEntry.ActivityType" asp-items="Html.GetEnumSelectList<TimeActivityType>()"></select>
+                </div>
+                <div>
+                    <label asp-for="AddTimeEntry.Hours">Hours</label>
+                    <input asp-for="AddTimeEntry.Hours" type="number" step="0.25" />
+                </div>
+                <div>
+                    <label asp-for="AddTimeEntry.Rate">Rate</label>
+                    <input asp-for="AddTimeEntry.Rate" type="number" step="0.01" />
+                </div>
+                <div class="full">
+                    <label asp-for="AddTimeEntry.Notes">Notes</label>
+                    <textarea asp-for="AddTimeEntry.Notes" rows="3"></textarea>
+                </div>
+                <div class="full form-actions">
+                    <button class="button dark" type="submit">Save Time</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card form-card" id="newExpense">
+            <h2>New Expense Entry</h2>
+            <form asp-action="AddExpense" method="post" class="form-grid">
+                <input type="hidden" asp-for="AddExpenseEntry.CaseFileId" />
+                <div>
+                    <label asp-for="AddExpenseEntry.Date">Date</label>
+                    <input asp-for="AddExpenseEntry.Date" type="date" />
+                </div>
+                <div>
+                    <label asp-for="AddExpenseEntry.Category">Category</label>
+                    <select asp-for="AddExpenseEntry.Category" asp-items="Html.GetEnumSelectList<ExpenseCategory>()"></select>
+                </div>
+                <div>
+                    <label asp-for="AddExpenseEntry.Description">Description</label>
+                    <input asp-for="AddExpenseEntry.Description" />
+                </div>
+                <div>
+                    <label asp-for="AddExpenseEntry.Quantity">Quantity</label>
+                    <input asp-for="AddExpenseEntry.Quantity" type="number" step="0.01" />
+                </div>
+                <div>
+                    <label asp-for="AddExpenseEntry.UnitCost">Unit Cost</label>
+                    <input asp-for="AddExpenseEntry.UnitCost" type="number" step="0.01" />
+                </div>
+                <div>
+                    <label asp-for="AddExpenseEntry.ReceiptNumber">Receipt</label>
+                    <input asp-for="AddExpenseEntry.ReceiptNumber" />
+                </div>
+                <div class="full checkbox-line">
+                    <input asp-for="AddExpenseEntry.IsBillable" type="checkbox" />
+                    <label asp-for="AddExpenseEntry.IsBillable">Billable</label>
+                </div>
+                <div class="full form-actions">
+                    <button class="button dark" type="submit">Save Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}

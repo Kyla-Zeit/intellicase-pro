@@ -1,0 +1,38 @@
+@model ClientFormModel
+@{
+    ViewData["Title"] = "New Client";
+    ViewData["Subtitle"] = "Because scribbling names on sticky notes is not a CRM.";
+}
+
+<div class="card form-card">
+    <form asp-action="Create" method="post" class="form-grid">
+        <div>
+            <label asp-for="Name"></label>
+            <input asp-for="Name" />
+        </div>
+        <div>
+            <label asp-for="CompanyName"></label>
+            <input asp-for="CompanyName" />
+        </div>
+        <div>
+            <label asp-for="Email"></label>
+            <input asp-for="Email" />
+        </div>
+        <div>
+            <label asp-for="Phone"></label>
+            <input asp-for="Phone" />
+        </div>
+        <div class="full">
+            <label asp-for="Address"></label>
+            <input asp-for="Address" />
+        </div>
+        <div class="full">
+            <label asp-for="Notes"></label>
+            <textarea asp-for="Notes" rows="4"></textarea>
+        </div>
+        <div class="full form-actions">
+            <button class="button dark" type="submit">Save Client</button>
+            <a class="button ghost" asp-action="Index">Cancel</a>
+        </div>
+    </form>
+</div>

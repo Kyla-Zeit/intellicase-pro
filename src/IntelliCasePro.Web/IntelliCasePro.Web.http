@@ -1,0 +1,14 @@
+@IntelliCasePro.Web_HostAddress = http://localhost:5070
+
+GET {{IntelliCasePro.Web_HostAddress}}/api/cases
+Accept: application/json
+
+###
+
+GET {{IntelliCasePro.Web_HostAddress}}/api/reports/overview
+Accept: application/json
+
+###
+
+GET {{IntelliCasePro.Web_HostAddress}}/api/expenses/summary
+Accept: application/json

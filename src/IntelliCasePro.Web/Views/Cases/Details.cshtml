@@ -1,0 +1,583 @@
+@model CaseDetailsViewModel
+@{
+    ViewData["Title"] = Model.Case.CaseNumber;
+    ViewData["Subtitle"] = Model.Case.Title;
+    var item = Model.Case;
+}
+
+<div class="detail-header card">
+    <div>
+        <div class="eyebrow">@item.Status · @item.Priority Priority · @item.Jurisdiction</div>
+        <h2>@item.Title</h2>
+        <p class="lead">@item.Summary</p>
+        <div class="hero-pills compact-pills">
+            <span class="hero-pill">Subject: @item.SubjectName</span>
+            <span class="hero-pill">Opened @item.OpenedOn.ToString("MMM dd, yyyy")</span>
+            <span class="hero-pill">Last activity @item.LastActivityOn.ToString("MMM dd, yyyy h:mm tt")</span>
+            <span class="hero-pill">@(item.IsBillable ? "Billable file" : "Non-billable file")</span>
+        </div>
+    </div>
+    <div class="detail-meta">
+        <div><span>Client</span><strong>@item.Client?.Name</strong><div class="subtle">@item.Client?.CompanyName</div></div>
+        <div><span>Lead</span><strong>@item.LeadInvestigator?.FullName</strong><div class="subtle">@item.LeadInvestigator?.Title</div></div>
+        <div><span>Due</span><strong>@(item.DueDate?.ToString("MMM dd, yyyy") ?? "No hard deadline")</strong><div class="subtle">Next task: @Model.NextTaskTitle</div></div>
+        <div><span>Contact</span><strong>@item.Client?.Email</strong><div class="subtle">@item.Client?.Phone</div></div>
+    </div>
+</div>
+
+<div class="metric-grid case-metrics-grid">
+    <div class="metric-card">
+        <span class="metric-label">Retainer</span>
+        <strong class="metric-value">@item.RetainerAmount.ToString("C")</strong>
+        <div class="subtle">Remaining: @Model.RetainerRemaining.ToString("C")</div>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Budget</span>
+        <strong class="metric-value">@item.Budget.ToString("C")</strong>
+        <div class="progress-shell">
+            <div class="progress-bar" style="width:@Model.BudgetUtilization.ToString(System.Globalization.CultureInfo.InvariantCulture)%"></div>
+        </div>
+        <div class="subtle">Used @Model.BudgetUsed.ToString("C") · @Model.BudgetUtilization% of budget</div>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Tasks</span>
+        <strong class="metric-value">@Model.OpenTaskCount</strong>
+        <div class="subtle">@Model.CompletedTaskCount completed</div>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Evidence</span>
+        <strong class="metric-value">@item.EvidenceItems.Count</strong>
+        <div class="subtle">@Model.SensitiveEvidenceCount marked sensitive</div>
+    </div>
+    <div class="metric-card">
+        <span class="metric-label">Billing</span>
+        <strong class="metric-value">@Model.InvoiceValue.ToString("C")</strong>
+        <div class="subtle">Time @Model.TimeValue.ToString("C") · Expenses @Model.ExpenseValue.ToString("C")</div>
+    </div>
+</div>
+
+<div class="card case-tab-card">
+    <div class="case-tabs">
+        <a class="case-tab @(Model.ActiveTab == "overview" ? "active" : "")" asp-action="Details" asp-route-id="@item.Id" asp-route-tab="overview">Overview</a>
+        <a class="case-tab @(Model.ActiveTab == "tasks" ? "active" : "")" asp-action="Details" asp-route-id="@item.Id" asp-route-tab="tasks">Tasks</a>
+        <a class="case-tab @(Model.ActiveTab == "notes" ? "active" : "")" asp-action="Details" asp-route-id="@item.Id" asp-route-tab="notes">Notes</a>
+        <a class="case-tab @(Model.ActiveTab == "evidence" ? "active" : "")" asp-action="Details" asp-route-id="@item.Id" asp-route-tab="evidence">Evidence</a>
+        <a class="case-tab @(Model.ActiveTab == "billing" ? "active" : "")" asp-action="Details" asp-route-id="@item.Id" asp-route-tab="billing">Billing</a>
+    </div>
+</div>
+
+@if (Model.ActiveTab == "overview")
+{
+    <div class="content-grid two-col">
+        <div class="card">
+            <div class="card-head">
+                <h2>Activity Timeline</h2>
+                <span class="subtle">Last 10 major actions on the file</span>
+            </div>
+            <div class="timeline-list">
+                @foreach (var activity in Model.RecentActivity)
+                {
+                    <article class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div>
+                            <div class="timeline-top">
+                                <strong>@activity.Title</strong>
+                                <span>@activity.Timestamp.ToString("MMM dd, yyyy h:mm tt")</span>
+                            </div>
+                            <div class="subtle">@activity.Kind</div>
+                            <p>@activity.Detail</p>
+                        </div>
+                    </article>
+                }
+            </div>
+        </div>
+
+        <div class="stack-list overview-side-stack">
+            <div class="card">
+                <div class="card-head">
+                    <h2>Upcoming Activity</h2>
+                    <a class="button small ghost" asp-controller="Calendar" asp-action="Index">Calendar</a>
+                </div>
+                @if (Model.RelatedEvents.Any())
+                {
+                    <div class="stack-list">
+                        @foreach (var ev in Model.RelatedEvents.Take(4))
+                        {
+                            <article class="stack-item align-start">
+                                <div>
+                                    <strong>@ev.Title</strong>
+                                    <div class="subtle">@ev.StartsAt.ToString("MMM dd, yyyy h:mm tt") · @ev.Location</div>
+                                </div>
+                                <div class="stack-meta">@ev.AssignedTo</div>
+                            </article>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">No scheduled field activity is attached to this case yet.</div>
+                }
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2>Latest Notes</h2>
+                    <a class="button small ghost" asp-action="Details" asp-route-id="@item.Id" asp-route-tab="notes">Open notes</a>
+                </div>
+                @if (item.Notes.Any())
+                {
+                    <div class="stack-list">
+                        @foreach (var note in item.Notes.Take(3))
+                        {
+                            <article class="note-card">
+                                <div class="note-top">
+                                    <strong>@note.Author</strong>
+                                    <span>@note.CreatedOn.ToString("MMM dd")</span>
+                                </div>
+                                <p>@note.Text</p>
+                            </article>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">No notes yet. Which is brave for investigators who are supposed to document everything.</div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model.ActiveTab == "tasks")
+{
+    <div class="content-grid two-col case-detail-grid">
+        <div class="card">
+            <div class="card-head">
+                <h2>Open Tasks</h2>
+                <span class="subtle">@Model.OpenTaskCount pending</span>
+            </div>
+            @if (item.Tasks.Any())
+            {
+                <div class="stack-list">
+                    @foreach (var task in item.Tasks)
+                    {
+                        <article class="stack-item align-start">
+                            <div>
+                                <strong>@task.Title</strong>
+                                <div class="subtle">@task.AssignedTo · @(task.DueDate?.ToString("MMM dd, yyyy") ?? "No due date")</div>
+                                @if (!string.IsNullOrWhiteSpace(task.Notes))
+                                {
+                                    <div class="subtle">@task.Notes</div>
+                                }
+                            </div>
+                            <div class="stack-meta">
+                                <span class="badge @(task.IsCompleted ? "success" : "")">@(task.IsCompleted ? "Complete" : "Open")</span>
+                                <form asp-action="ToggleTask" method="post" class="inline-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="taskId" value="@task.Id" />
+                                    <input type="hidden" name="caseId" value="@item.Id" />
+                                    <input type="hidden" name="tab" value="tasks" />
+                                    <button type="submit" class="button small ghost">@(task.IsCompleted ? "Reopen" : "Mark Complete")</button>
+                                </form>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">No tasks on this file yet.</div>
+            }
+        </div>
+
+        <div class="card form-card">
+            <h2>Add Task</h2>
+            <form asp-action="AddTask" method="post" class="form-grid">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="AddTask.CaseFileId" />
+                <div class="full">
+                    <label asp-for="AddTask.Title">Task title</label>
+                    <input asp-for="AddTask.Title" />
+                </div>
+                <div>
+                    <label asp-for="AddTask.AssignedTo">Assigned to</label>
+                    <input asp-for="AddTask.AssignedTo" />
+                </div>
+                <div>
+                    <label asp-for="AddTask.DueDate">Due date</label>
+                    <input asp-for="AddTask.DueDate" type="date" />
+                </div>
+                <div class="full">
+                    <label asp-for="AddTask.Notes">Task notes</label>
+                    <textarea asp-for="AddTask.Notes" rows="4"></textarea>
+                </div>
+                <div class="full form-actions">
+                    <button class="button dark" type="submit">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+@if (Model.ActiveTab == "notes")
+{
+    <div class="content-grid two-col case-detail-grid">
+        <div class="card">
+            <div class="card-head">
+                <h2>Case Notes</h2>
+                <span class="subtle">@Model.InternalNoteCount internal notes</span>
+            </div>
+            @if (item.Notes.Any())
+            {
+                <div class="stack-list">
+                    @foreach (var note in item.Notes)
+                    {
+                        <article class="note-card">
+                            <div class="note-top">
+                                <strong>@note.Author</strong>
+                                <span>@note.CreatedOn.ToString("MMM dd, yyyy h:mm tt")</span>
+                            </div>
+                            <div class="hero-pills compact-pills">
+                                <span class="hero-pill">@(note.IsInternal ? "Internal" : "Client-facing")</span>
+                            </div>
+                            <p>@note.Text</p>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">No notes saved. Suspiciously tidy case file.</div>
+            }
+        </div>
+
+        <div class="card form-card">
+            <h2>Add Note</h2>
+            <form asp-action="AddNote" method="post" class="form-grid">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="AddNote.CaseFileId" />
+                <div>
+                    <label asp-for="AddNote.Author">Author</label>
+                    <input asp-for="AddNote.Author" />
+                </div>
+                <div class="checkbox-line pad-top">
+                    <input asp-for="AddNote.IsInternal" type="checkbox" />
+                    <label asp-for="AddNote.IsInternal">Internal note</label>
+                </div>
+                <div class="full">
+                    <label asp-for="AddNote.Text">Note</label>
+                    <textarea asp-for="AddNote.Text" rows="8"></textarea>
+                </div>
+                <div class="full form-actions">
+                    <button class="button dark" type="submit">Save Note</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+@if (Model.ActiveTab == "evidence")
+{
+    <div class="content-grid two-col case-detail-grid">
+        <div class="card">
+            <div class="card-head">
+                <h2>Evidence Register</h2>
+                <span class="subtle">@Model.SensitiveEvidenceCount sensitive items</span>
+            </div>
+            @if (item.EvidenceItems.Any())
+            {
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Ref</th>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Hash</th>
+                                <th>Added</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var evidence in item.EvidenceItems)
+                        {
+                            <tr>
+                                <td>@evidence.ReferenceNumber</td>
+                                <td>
+                                    <strong>@evidence.Title</strong>
+                                    <div class="subtle">@evidence.StorageLocation · @evidence.Tags</div>
+                                </td>
+                                <td>
+                                    @evidence.Type
+                                    @if (evidence.IsSensitive)
+                                    {
+                                        <div><span class="badge">Sensitive</span></div>
+                                    }
+                                </td>
+                                <td><span class="mono">@evidence.HashValue</span></td>
+                                <td>@evidence.AddedOn.ToString("MMM dd, yyyy")<div class="subtle">@evidence.AddedBy</div></td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">No evidence items on file yet.</div>
+            }
+        </div>
+
+        <div class="card form-card">
+            <h2>Add Evidence</h2>
+            <form asp-action="AddEvidence" method="post" class="form-grid">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="AddEvidence.CaseFileId" />
+                <div>
+                    <label asp-for="AddEvidence.ReferenceNumber">Reference</label>
+                    <input asp-for="AddEvidence.ReferenceNumber" />
+                </div>
+                <div>
+                    <label asp-for="AddEvidence.Type">Type</label>
+                    <select asp-for="AddEvidence.Type" asp-items="Html.GetEnumSelectList<EvidenceType>()"></select>
+                </div>
+                <div class="full">
+                    <label asp-for="AddEvidence.Title">Title</label>
+                    <input asp-for="AddEvidence.Title" />
+                </div>
+                <div class="full">
+                    <label asp-for="AddEvidence.Description">Description</label>
+                    <textarea asp-for="AddEvidence.Description" rows="4"></textarea>
+                </div>
+                <div>
+                    <label asp-for="AddEvidence.FileName">File name</label>
+                    <input asp-for="AddEvidence.FileName" />
+                </div>
+                <div>
+                    <label asp-for="AddEvidence.StorageLocation">Storage location</label>
+                    <input asp-for="AddEvidence.StorageLocation" />
+                </div>
+                <div>
+                    <label asp-for="AddEvidence.Tags">Tags</label>
+                    <input asp-for="AddEvidence.Tags" />
+                </div>
+                <div>
+                    <label asp-for="AddEvidence.HashValue">Hash</label>
+                    <input asp-for="AddEvidence.HashValue" />
+                </div>
+                <div class="full checkbox-line">
+                    <input asp-for="AddEvidence.IsSensitive" type="checkbox" />
+                    <label asp-for="AddEvidence.IsSensitive">Sensitive evidence</label>
+                </div>
+                <div class="full form-actions">
+                    <button class="button dark" type="submit">Log Evidence</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+@if (Model.ActiveTab == "billing")
+{
+    <div class="card totals-card">
+        <h2>Billing Snapshot</h2>
+        <div class="metric-grid billing-grid">
+            <div class="metric-card">
+                <span class="metric-label">Time Value</span>
+                <strong class="metric-value">@Model.TimeValue.ToString("C")</strong>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Expense Value</span>
+                <strong class="metric-value">@Model.ExpenseValue.ToString("C")</strong>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Invoiced</span>
+                <strong class="metric-value">@Model.InvoiceValue.ToString("C")</strong>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Remaining Budget</span>
+                <strong class="metric-value">@Model.BudgetRemaining.ToString("C")</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-grid two-col case-detail-grid">
+        <div class="card">
+            <h2>Time Entries</h2>
+            @if (item.TimeEntries.Any())
+            {
+                <div class="table-wrap">
+                    <table class="data-table compact">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Activity</th>
+                                <th>Notes</th>
+                                <th>Hours</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var entry in item.TimeEntries)
+                        {
+                            <tr>
+                                <td>@entry.Date.ToString("MMM dd")</td>
+                                <td>@entry.ActivityType<div class="subtle">@entry.InvestigatorName</div></td>
+                                <td>@entry.Notes</td>
+                                <td>@entry.Hours.ToString("0.##")</td>
+                                <td>@entry.Amount.ToString("C")</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">No time entries captured for this file yet.</div>
+            }
+        </div>
+
+        <div class="card">
+            <h2>Expenses & Invoices</h2>
+            @if (item.ExpenseEntries.Any())
+            {
+                <div class="table-wrap compact-table-space">
+                    <table class="data-table compact">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var entry in item.ExpenseEntries)
+                        {
+                            <tr>
+                                <td>@entry.Date.ToString("MMM dd")</td>
+                                <td>@entry.Category</td>
+                                <td>@entry.Description<div class="subtle">@entry.ReceiptNumber</div></td>
+                                <td>@entry.Total.ToString("C")</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">No expense entries on this file yet.</div>
+            }
+
+            <div class="section-divider"></div>
+
+            @if (item.Invoices.Any())
+            {
+                <div class="table-wrap">
+                    <table class="data-table compact">
+                        <thead>
+                            <tr>
+                                <th>Invoice</th>
+                                <th>Status</th>
+                                <th>Due</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var invoice in item.Invoices)
+                        {
+                            <tr>
+                                <td>@invoice.InvoiceNumber</td>
+                                <td><span class="badge @(invoice.Status == InvoiceStatus.Paid ? "success" : "")">@invoice.Status</span></td>
+                                <td>@invoice.DueOn.ToString("MMM dd, yyyy")</td>
+                                <td>@invoice.Total.ToString("C")</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">No invoices have been issued yet.</div>
+            }
+        </div>
+    </div>
+
+    <div class="content-grid two-col case-detail-grid">
+        <div class="card form-card">
+            <h2>Add Time Entry</h2>
+            <form asp-action="AddTime" method="post" class="form-grid">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="AddTimeEntry.CaseFileId" />
+                <div>
+                    <label asp-for="AddTimeEntry.Date">Date</label>
+                    <input asp-for="AddTimeEntry.Date" type="date" />
+                </div>
+                <div>
+                    <label asp-for="AddTimeEntry.InvestigatorName">Investigator</label>
+                    <input asp-for="AddTimeEntry.InvestigatorName" />
+                </div>
+                <div>
+                    <label asp-for="AddTimeEntry.ActivityType">Activity</label>
+                    <select asp-for="AddTimeEntry.ActivityType" asp-items="Html.GetEnumSelectList<TimeActivityType>()"></select>
+                </div>
+                <div>
+                    <label asp-for="AddTimeEntry.Hours">Hours</label>
+                    <input asp-for="AddTimeEntry.Hours" type="number" step="0.25" />
+                </div>
+                <div>
+                    <label asp-for="AddTimeEntry.Rate">Rate</label>
+                    <input asp-for="AddTimeEntry.Rate" type="number" step="0.01" />
+                </div>
+                <div class="full">
+                    <label asp-for="AddTimeEntry.Notes">Notes</label>
+                    <textarea asp-for="AddTimeEntry.Notes" rows="4"></textarea>
+                </div>
+                <div class="full form-actions">
+                    <button class="button dark" type="submit">Save Time</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card form-card">
+            <h2>Add Expense Entry</h2>
+            <form asp-action="AddExpense" method="post" class="form-grid">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="AddExpenseEntry.CaseFileId" />
+                <div>
+                    <label asp-for="AddExpenseEntry.Date">Date</label>
+                    <input asp-for="AddExpenseEntry.Date" type="date" />
+                </div>
+                <div>
+                    <label asp-for="AddExpenseEntry.Category">Category</label>
+                    <select asp-for="AddExpenseEntry.Category" asp-items="Html.GetEnumSelectList<ExpenseCategory>()"></select>
+                </div>
+                <div class="full">
+                    <label asp-for="AddExpenseEntry.Description">Description</label>
+                    <input asp-for="AddExpenseEntry.Description" />
+                </div>
+                <div>
+                    <label asp-for="AddExpenseEntry.Quantity">Quantity</label>
+                    <input asp-for="AddExpenseEntry.Quantity" type="number" step="0.01" />
+                </div>
+                <div>
+                    <label asp-for="AddExpenseEntry.UnitCost">Unit cost</label>
+                    <input asp-for="AddExpenseEntry.UnitCost" type="number" step="0.01" />
+                </div>
+                <div>
+                    <label asp-for="AddExpenseEntry.ReceiptNumber">Receipt</label>
+                    <input asp-for="AddExpenseEntry.ReceiptNumber" />
+                </div>
+                <div class="full checkbox-line">
+                    <input asp-for="AddExpenseEntry.IsBillable" type="checkbox" />
+                    <label asp-for="AddExpenseEntry.IsBillable">Billable expense</label>
+                </div>
+                <div class="full form-actions">
+                    <button class="button dark" type="submit">Save Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}

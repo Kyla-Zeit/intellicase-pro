@@ -1,0 +1,12 @@
+bin/
+obj/
+**/bin/
+**/obj/
+*.db
+*.db-shm
+*.db-wal
+.vscode/
+.vs/
+data/
+.env
+.DS_Store

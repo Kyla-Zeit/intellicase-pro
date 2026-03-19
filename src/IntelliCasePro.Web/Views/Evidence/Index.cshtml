@@ -1,0 +1,96 @@
+@model EvidencePageViewModel
+@{
+    ViewData["Title"] = "Evidence";
+}
+
+<div class="card">
+    <form method="get" class="filter-bar">
+        <select asp-for="SelectedCaseId" asp-items="Model.CaseOptions" name="caseId"></select>
+        <button class="button dark" type="submit">Load Case</button>
+        <a class="button ghost" href="#newEvidence">New Evidence</a>
+    </form>
+</div>
+
+<div class="content-grid two-col">
+    <div class="card">
+        <h2>Evidence Register</h2>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Ref</th>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Storage</th>
+                        <th>Added</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.EvidenceItems)
+                {
+                    <tr>
+                        <td>@item.ReferenceNumber</td>
+                        <td>
+                            @item.Title
+                            <div class="subtle">@item.Description</div>
+                        </td>
+                        <td>@item.Type</td>
+                        <td>@item.StorageLocation</td>
+                        <td>@item.AddedOn.ToString("MMM dd, yyyy")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card form-card" id="newEvidence">
+        <h2>Add Evidence</h2>
+        <form asp-action="Add" method="post" class="form-grid">
+            <input type="hidden" asp-for="AddEvidence.CaseFileId" />
+            <div>
+                <label asp-for="AddEvidence.ReferenceNumber">Reference</label>
+                <input asp-for="AddEvidence.ReferenceNumber" />
+            </div>
+            <div>
+                <label asp-for="AddEvidence.Title">Title</label>
+                <input asp-for="AddEvidence.Title" />
+            </div>
+            <div>
+                <label asp-for="AddEvidence.Type">Type</label>
+                <select asp-for="AddEvidence.Type" asp-items="Html.GetEnumSelectList<EvidenceType>()"></select>
+            </div>
+            <div>
+                <label asp-for="AddEvidence.AddedBy">Added By</label>
+                <input asp-for="AddEvidence.AddedBy" />
+            </div>
+            <div class="full">
+                <label asp-for="AddEvidence.Description">Description</label>
+                <textarea asp-for="AddEvidence.Description" rows="3"></textarea>
+            </div>
+            <div>
+                <label asp-for="AddEvidence.FileName">File Name</label>
+                <input asp-for="AddEvidence.FileName" />
+            </div>
+            <div>
+                <label asp-for="AddEvidence.Tags">Tags</label>
+                <input asp-for="AddEvidence.Tags" />
+            </div>
+            <div>
+                <label asp-for="AddEvidence.StorageLocation">Storage</label>
+                <input asp-for="AddEvidence.StorageLocation" />
+            </div>
+            <div>
+                <label asp-for="AddEvidence.HashValue">Hash</label>
+                <input asp-for="AddEvidence.HashValue" />
+            </div>
+            <div class="full checkbox-line">
+                <input asp-for="AddEvidence.IsSensitive" type="checkbox" />
+                <label asp-for="AddEvidence.IsSensitive">Sensitive evidence</label>
+            </div>
+            <div class="full form-actions">
+                <button class="button dark" type="submit">Save Evidence</button>
+            </div>
+        </form>
+    </div>
+</div>

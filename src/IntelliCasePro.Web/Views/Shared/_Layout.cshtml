@@ -1,0 +1,78 @@
+@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - IntelliCase Pro</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="app-shell">
+        <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+        <aside class="sidebar" id="appSidebar">
+            <div class="brand">
+                <div class="brand-mark">◎</div>
+                <div>
+                    <div class="brand-title">IntelliCase Pro</div>
+                    <div class="brand-sub">Private Investigator Suite</div>
+                </div>
+            </div>
+
+            <nav class="nav">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Cases" ? "active" : "")" asp-controller="Cases" asp-action="Index">Cases</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Clients" ? "active" : "")" asp-controller="Clients" asp-action="Index">Clients</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evidence" ? "active" : "")" asp-controller="Evidence" asp-action="Index">Evidence</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Expenses" ? "active" : "")" asp-controller="Expenses" asp-action="Index">Expenses</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Invoices" ? "active" : "")" asp-controller="Invoices" asp-action="Index">Invoices</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Calendar" ? "active" : "")" asp-controller="Calendar" asp-action="Index">Calendar</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "active" : "")" asp-controller="Reports" asp-action="Index">Reports</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Community" ? "active" : "")" asp-controller="Community" asp-action="Index">Community</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                @if (User.IsInRole("Admin"))
+                {
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "active" : "")" asp-controller="Settings" asp-action="Index">Settings</a>
+                }
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-title-wrap">
+                    <button type="button" class="mobile-nav-toggle" id="mobileNavToggle" aria-controls="appSidebar" aria-expanded="false" aria-label="Open navigation">☰</button>
+                    <div>
+                        <h1 class="page-title">@ViewData["Title"]</h1>
+                        <div class="page-subtitle">@ViewData["Subtitle"]</div>
+                    </div>
+                </div>
+                <div class="topbar-actions">
+                    <div class="user-pill">
+                        <div class="user-pill-name">@(User.Identity?.Name ?? "Investigator")</div>
+                        <div class="user-pill-meta">@(User.FindFirst("job_title")?.Value ?? "User") · @(User.FindFirstValue(ClaimTypes.Role) ?? "")</div>
+                    </div>
+                    <a class="button ghost desktop-analytics" asp-controller="Reports" asp-action="Index">Analytics</a>
+                    <form asp-controller="Auth" asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="button dark">Log Out</button>
+                    </form>
+                </div>
+            </header>
+
+            @if (TempData["Flash"] is string flash)
+            {
+                <div class="flash" id="flashMessage">@flash</div>
+            }
+
+            <section class="page-body">
+                @RenderBody()
+            </section>
+        </main>
+    </div>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

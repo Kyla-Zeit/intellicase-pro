@@ -1,0 +1,52 @@
+@model Client
+@{
+    ViewData["Title"] = Model.Name;
+    ViewData["Subtitle"] = Model.CompanyName;
+}
+
+<div class="detail-header card">
+    <div>
+        <div class="eyebrow">Client Profile</div>
+        <h2>@Model.Name</h2>
+        <p class="lead">@Model.Notes</p>
+    </div>
+    <div class="detail-meta">
+        <div><span>Email</span><strong>@Model.Email</strong></div>
+        <div><span>Phone</span><strong>@Model.Phone</strong></div>
+        <div><span>Address</span><strong>@Model.Address</strong></div>
+        <div><span>Open Files</span><strong>@Model.Cases.Count</strong></div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head">
+        <h2>Associated Cases</h2>
+        <a class="button small ghost" asp-controller="Cases" asp-action="Create">Open Case</a>
+    </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Case</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Lead</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.Cases.OrderByDescending(x => x.LastActivityOn))
+            {
+                <tr>
+                    <td>
+                        <a asp-controller="Cases" asp-action="Details" asp-route-id="@item.Id">@item.CaseNumber</a>
+                        <div class="subtle">@item.Title</div>
+                    </td>
+                    <td><span class="badge">@item.Status</span></td>
+                    <td>@item.Priority</td>
+                    <td>@item.LeadInvestigator?.FullName</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

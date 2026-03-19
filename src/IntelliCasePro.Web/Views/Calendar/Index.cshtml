@@ -1,0 +1,47 @@
+@model CalendarPageViewModel
+@{
+    ViewData["Title"] = "Calendar";
+}
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>When</th>
+                    <th>Event</th>
+                    <th>Case</th>
+                    <th>Assigned</th>
+                    <th>Location</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.Events)
+            {
+                <tr>
+                    <td>
+                        @item.StartsAt.ToString("MMM dd")
+                        <div class="subtle">@item.StartsAt.ToString("h:mm tt") - @item.EndsAt.ToString("h:mm tt")</div>
+                    </td>
+                    <td>
+                        @item.Title
+                        <div class="subtle">@item.Category</div>
+                    </td>
+                    <td>
+                        @if (item.CaseFileId.HasValue)
+                        {
+                            <a asp-controller="Cases" asp-action="Details" asp-route-id="@item.CaseFileId">@item.CaseFile?.CaseNumber</a>
+                        }
+                        else
+                        {
+                            <span>—</span>
+                        }
+                    </td>
+                    <td>@item.AssignedTo</td>
+                    <td>@item.Location</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
