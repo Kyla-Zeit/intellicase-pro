@@ -9,3 +9,14 @@ obj/
 .vs/
 .env
 .DS_Store
+
+# Android / Android Studio
+android/.gradle/
+android/.idea/
+android/.kotlin/
+android/local.properties
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+android/app/build/
+android/**/*.iml
