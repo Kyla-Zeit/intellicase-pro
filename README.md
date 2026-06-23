@@ -100,12 +100,32 @@ http://localhost:8080
 4. Let Gradle sync.
 5. Run the `app` configuration on an Android emulator or device.
 
-You can also build it from the terminal:
+### Build from the terminal
 
 ```powershell
 cd android
 .\gradlew.bat :app:assembleDebug
 ```
+
+The debug APK is created at:
+
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Open without Android Studio
+
+If you only want to try the Android app, install the built APK on an Android phone or emulator.
+
+This repo does not commit APK build output. Build the APK locally with the Gradle command above, or download an APK from the repo's GitHub Releases if one has been attached for demos.
+
+To install from a terminal with Android platform tools:
+
+```powershell
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+The debug APK is automatically signed for testing. It is meant for demo/review installs, not Play Store distribution.
 
 ### Persistent data
 
