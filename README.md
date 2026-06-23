@@ -94,6 +94,16 @@ http://localhost:8080
 
 ## Open the Android app
 
+### Quick demo APK
+
+For the easiest test install, download the demo APK:
+
+[Download IntelliCasePro-Android-demo.apk](https://github.com/Kyla-Zeit/intellicase-pro/raw/main/downloads/IntelliCasePro-Android-demo.apk)
+
+Android may ask you to allow installs from your browser or file manager. This APK is debug-signed for demo/review installs and is not meant for Play Store distribution.
+
+### Open in Android Studio
+
 1. Open Android Studio.
 2. Choose **File > Open**.
 3. Select the `android` folder in this repo.
@@ -117,12 +127,12 @@ android/app/build/outputs/apk/debug/app-debug.apk
 
 If you only want to try the Android app, install the built APK on an Android phone or emulator.
 
-This repo does not commit APK build output. Build the APK locally with the Gradle command above, or download an APK from the repo's GitHub Releases if one has been attached for demos.
+You can use the included demo APK in `downloads/`, build the APK locally with the Gradle command above, or download an APK from the repo's GitHub Releases if a demo APK has been attached there.
 
 To install from a terminal with Android platform tools:
 
 ```powershell
-adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+adb install -r downloads/IntelliCasePro-Android-demo.apk
 ```
 
 The debug APK is automatically signed for testing. It is meant for demo/review installs, not Play Store distribution.
