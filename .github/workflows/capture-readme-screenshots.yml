@@ -74,9 +74,9 @@ jobs:
             await page.goto(`${base}/Cases`, { waitUntil: 'networkidle' });
             await page.screenshot({ path: path.join(out, 'docs/assets/cases.png'), fullPage: false });
 
-            const details = page.locator('a[href*="/Cases/Details"]').first();
-            if (await details.count()) {
-              await details.click();
+            const firstCase = page.locator('tr.clickable-row').first();
+            if (await firstCase.count()) {
+              await firstCase.click();
               await page.waitForLoadState('networkidle');
               await page.screenshot({ path: path.join(out, 'docs/assets/case-details.png'), fullPage: false });
             }
@@ -97,7 +97,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/assets/dashboard.png docs/assets/cases.png docs/assets/case-details.png docs/assets/evidence.png
+          git add docs/assets/*.png
           if git diff --cached --quiet; then
             echo "Screenshots are already current."
             exit 0
