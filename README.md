@@ -1,86 +1,158 @@
 # IntelliCase Pro
 
-A modern investigative case management platform for private investigators, with a full **ASP.NET Core 8 MVC web app** and a native **Android Studio / Kotlin** mobile app.
+![build](https://github.com/Kyla-Zeit/intellicase-pro/actions/workflows/dotnet-build.yml/badge.svg)
 
-## Platforms
+**Full-stack investigative case management for web and Android.**
 
-- **Web app:** ASP.NET Core 8 MVC, Razor Views, EF Core, SQLite, Docker
-- **Android app:** Kotlin, Jetpack Compose, Material 3, Gradle
+IntelliCase Pro is a portfolio-scale case management platform built around the operational needs of investigative teams. The web application brings case intake, evidence, time and expenses, billing, scheduling, reporting, and role-aware access into one workflow, while the native Android prototype explores how the same product can support mobile case review and field work.
 
-## What this build includes
+The project combines an **ASP.NET Core 8 MVC / EF Core / SQLite** web stack with a separate **Kotlin + Jetpack Compose** Android application.
 
-- Case intake and case tracking
-- Client management
-- Evidence management
-- Time and expense tracking
-- Invoicing overview
-- Reporting and analytics dashboard
-- Calendar and field activity planning
-- Role-based login with demo investigator accounts
-- Native Android prototype for mobile case review and field workflows
+## Product at a glance
 
-## Stack
+| Area | Implementation |
+| --- | --- |
+| Web application | ASP.NET Core 8 MVC + Razor Views |
+| Data layer | Entity Framework Core + SQLite |
+| Authentication | Cookie authentication + PBKDF2 password hashing |
+| Mobile | Native Kotlin + Jetpack Compose Android app |
+| Delivery | Docker, Docker Compose, GitHub Actions |
+| Demo data | Seeded investigators, clients, cases, evidence, time, expenses, invoices, tasks, and calendar events |
 
-- **Web frontend:** ASP.NET Core MVC, Razor Views, custom CSS
-- **Web backend:** ASP.NET Core 8
-- **Data access:** Entity Framework Core
-- **Database:** SQLite
-- **Authentication:** Cookie-based authentication with PBKDF2 password hashing
-- **Mobile:** Kotlin, Jetpack Compose, Material 3
-- **Tooling:** Docker, Docker Compose, Android Studio, Gradle
-
-## Project structure
+## Investigative workflow
 
 ```text
-.github/
-data/
-src/
-  IntelliCasePro.Web/
-    Controllers/
-    Data/
-    Models/
-    Security/
-    Services/
-    Views/
-    wwwroot/
-android/
-  app/
-    src/main/java/com/intellicasepro/mobile/
-  gradle/
-docs/
-Dockerfile
-docker-compose.yml
+Client / Case Intake
+        ↓
+Case Assignment + Tasks
+        ↓
+Evidence + Notes + Field Activity
+        ↓
+Time + Expense Tracking
+        ↓
+Invoices + Operational Reporting
+        ↓
+Dashboard / Follow-up / Case Review
 ```
 
-## Run the web app locally with .NET
+The goal is to keep the operational pieces of an investigation connected instead of scattering case information across unrelated spreadsheets, notes, calendars, billing tools, and evidence logs.
 
-### Prerequisites
+## What the web app includes
+
+### Case management
+
+- Create and review investigative case files
+- Track case number, title, status, priority, subject, jurisdiction, dates, budget, retainer, and billing state
+- Assign lead investigators
+- Maintain case-specific tasks and notes
+- Search and review active investigations from the case list and dashboard
+
+### Evidence and field operations
+
+- Evidence register with quick intake
+- Evidence records linked to cases
+- Chain-of-custody data model support
+- Calendar for surveillance, interviews, deadlines, and field activity
+- Dashboard follow-ups for open and overdue tasks
+- Investigator workload and upcoming field-activity views
+
+### Time, expenses, and billing
+
+- Billable time tracking
+- Expense entry and categorization
+- Per-case financial context
+- Invoice overview
+- Dashboard metrics for billable hours, unbilled time value, monthly revenue, and outstanding receivables
+
+### Reporting and operations
+
+- Case-status distribution
+- Investigator workload visibility
+- Revenue and closure reporting
+- Dashboard KPIs and operational summaries
+- Selected JSON API endpoints for cases, expenses, and reports
+
+### Authentication and access
+
+The web application uses cookie-based authentication with PBKDF2 password hashing. Demo users represent different investigative roles, and the **Settings** area is restricted to the admin role.
+
+## Web architecture
+
+```text
+Browser
+   ↓
+ASP.NET Core MVC + Razor Views
+   ↓
+Controllers / Services
+   ↓
+Entity Framework Core
+   ↓
+SQLite
+```
+
+The repository separates UI, workflow/controller logic, reporting/dashboard services, persistence, security, and domain models so the application can grow without turning every feature into one heroic controller file fighting for its life.
+
+## Native Android app
+
+IntelliCase Pro also includes a real Android Studio project built with **Kotlin, Jetpack Compose, and Material 3**. It is not a WebView wrapper.
+
+The current Android prototype includes:
+
+- Native login
+- Dashboard metrics and active-case cards
+- Case review
+- Evidence register
+- Calendar
+- Billing view
+- Reports view
+- Local demo data based on the web product
+
+The Android app currently runs as a local prototype. Connecting it to the ASP.NET Core APIs and adding offline synchronization are future integration steps.
+
+### Download the Android demo
+
+[**Download IntelliCasePro-Android-demo.apk**](https://github.com/Kyla-Zeit/intellicase-pro/raw/main/downloads/IntelliCasePro-Android-demo.apk)
+
+The included APK is debug-signed for portfolio/demo review and is not intended for Play Store distribution.
+
+## Demo login
+
+The web build seeds three demo investigator accounts:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | `jane@intellicasepro.local` | `Demo#2026!` |
+| Investigator | `marcus@intellicasepro.local` | `Demo#2026!` |
+| Analyst | `priya@intellicasepro.local` | `Demo#2026!` |
+
+The Android prototype accepts:
+
+```text
+jane@intellicasepro.local
+Demo#2026!
+```
+
+These credentials are intentionally public demo credentials for the seeded local application.
+
+## Run the web app locally
+
+### Requirements
 
 - .NET 8 SDK
-- VS Code or Visual Studio
+- Visual Studio, VS Code, or another .NET-capable editor
 
-### Start the app
+### Start with .NET
 
 ```bash
 dotnet restore ./src/IntelliCasePro.Web/IntelliCasePro.Web.csproj
 dotnet run --project ./src/IntelliCasePro.Web/IntelliCasePro.Web.csproj
 ```
 
-Then open the local URL shown in the terminal, usually something like:
-
-```text
-http://localhost:5000
-```
+Open the local URL shown in the terminal.
 
 ## Run with Docker
 
-This repo includes a Dockerfile and Compose setup so the repo can be cloned and run without manually installing SQLite.
-
-### Prerequisites
-
-- Docker Desktop
-
-### Start the app
+The repository includes a Dockerfile and Docker Compose configuration for a one-command local environment.
 
 ```bash
 docker compose up --build
@@ -92,83 +164,93 @@ Then open:
 http://localhost:8080
 ```
 
-## Download The Demo APK
- 
- Install the demo APK directly on an Android phone or tablet:
+SQLite data is persisted through the mounted local `./data` directory so seeded data and changes survive container restarts.
 
-[Download IntelliCasePro-Android-demo.apk](https://github.com/Kyla-Zeit/intellicase-pro/raw/main/downloads/IntelliCasePro-Android-demo.apk)
+## CI
 
-Android may ask you to allow installs from your browser or file manager. This APK is debug-signed for demo/review installs and is not meant for Play Store distribution.
+GitHub Actions runs automatically on pushes and pull requests to `main`.
 
-### Persistent data
-
-The SQLite database is stored in a mounted local folder:
+The workflow currently:
 
 ```text
-./data
+Checkout
+   ↓
+Set up .NET 8
+   ↓
+Restore
+   ↓
+Release build
 ```
 
-That means your seeded data and anything you add in the app will persist between container restarts.
+Workflow: `.github/workflows/dotnet-build.yml`
 
-## Demo login
-
-Use one of the seeded investigator accounts in the web app:
-
-- **Admin:** `jane@intellicasepro.local` / `Demo#2026!`
-- **Investigator:** `marcus@intellicasepro.local` / `Demo#2026!`
-- **Analyst:** `priya@intellicasepro.local` / `Demo#2026!`
-
-Authentication uses cookie-based sign-in with PBKDF2 password hashing. The **Settings** area is restricted to the admin role.
-
-The Android prototype accepts:
+## Project structure
 
 ```text
-jane@intellicasepro.local
-Demo#2026!
+.github/
+  workflows/
+
+src/
+  IntelliCasePro.Web/
+    Controllers/
+      Api/
+    Data/
+    Models/
+    Security/
+    Services/
+    Views/
+    wwwroot/
+
+android/
+  app/
+  gradle/
+
+docs/
+downloads/
+
+Dockerfile
+docker-compose.yml
 ```
 
-## Demo data
+## Core domain model
 
-On first launch, the app seeds sample investigators, clients, cases, evidence, expenses, time entries, invoices, and calendar items.
+The web application models the main records required to represent an investigative workflow, including:
 
-## Main pages
+- Clients
+- Investigators
+- Cases
+- Case tasks
+- Case notes
+- Evidence items
+- Chain-of-custody entries
+- Time entries
+- Expense entries
+- Calendar events
+- Invoices
 
-- **Dashboard:** KPIs, active cases, recent evidence, invoices, and upcoming events
-- **Cases:** Searchable case list, case details, tasks, notes, evidence, time, and expenses
-- **Clients:** Client list and quick-create tools
-- **Expenses:** Time and miscellaneous expense breakdown with totals
-- **Evidence:** Evidence register with quick intake form
-- **Invoices:** Billing overview
-- **Calendar:** Upcoming surveillance, interviews, and deadlines
-- **Reports:** Case distribution, revenue, and closure rate
-- **Settings:** Admin-only demo preferences screen
+## Tech
 
-## GitHub-ready extras
+**Web:** C# · ASP.NET Core 8 MVC · Razor Views · HTML · CSS  
+**Data:** Entity Framework Core · SQLite  
+**Security:** Cookie authentication · PBKDF2 password hashing · role-aware access  
+**Mobile:** Kotlin · Jetpack Compose · Material 3 · Gradle  
+**Delivery:** Docker · Docker Compose · GitHub Actions
 
-- Dockerfile for containerized local runs
-- Docker Compose for one-command startup
-- GitHub Actions workflow for automatic build checks on push and pull request
-- Cleaned repository layout with build output and local database files excluded from source control
-- Android Studio project kept in `/android` so the web and mobile versions live together as one product
+## Current scope
 
-## Phase 2 ideas
+IntelliCase Pro is a portfolio project demonstrating full-stack application design around a real operational domain. The web application is the primary connected system. The Android build is a native prototype using local demo data rather than pretending to have backend synchronization that has not been implemented yet.
 
-- Secure document upload storage (Azure Blob, S3, or local file provider)
-- Chain-of-custody audit log UI
-- Offline field sync for remote work
-- External integrations:
-  - forensic tools
-  - legal research databases
-  - mapping and geospatial services
-  - email and communications
-- Export to polished PDF investigative reports
+## Roadmap
+
+Practical next steps include:
+
+- Full user and permission management
+- Complete chain-of-custody workflow UI and audit history
+- Secure evidence/document storage
+- Invoice generation and PDF export
+- Android-to-API integration
+- Offline-first mobile field capture and synchronization
 - Multi-tenant agency support
-- Android app integration with backend APIs and offline sync
+- External mapping, communications, legal-research, and forensic-tool integrations
 
-## Suggested next upgrades
-
-1. Add full user management and role permissions
-2. Add secure document upload storage and evidence download
-3. Add invoice generation and PDF export
-4. Add mobile-friendly field capture
-5. Add audit trail and chain-of-custody workflow
+Additional deployment and roadmap notes are available in [`docs/`](docs/).
