@@ -1,7 +1,5 @@
 # IntelliCase Pro
 
-![build](https://github.com/Kyla-Zeit/intellicase-pro/actions/workflows/dotnet-build.yml/badge.svg)
-
 **Full-stack investigative case management for web and Android.**
 
 IntelliCase Pro is a portfolio-scale case management platform built around the operational needs of investigative teams. The web application brings case intake, evidence, time and expenses, billing, scheduling, reporting, and role-aware access into one workflow, while the native Android prototype explores how the same product can support mobile case review and field work.
