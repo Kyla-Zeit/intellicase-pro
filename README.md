@@ -6,6 +6,24 @@ IntelliCase Pro is a portfolio-scale case management platform built around the o
 
 The project combines an **ASP.NET Core 8 MVC / EF Core / SQLite** web stack with a separate **Kotlin + Jetpack Compose** Android application.
 
+## Screenshots
+
+![IntelliCase Pro dashboard](docs/assets/dashboard.png)
+
+**Dashboard** — daily briefing, case metrics, follow-ups, active investigations, workload, and operational visibility.
+
+![IntelliCase Pro cases](docs/assets/cases.png)
+
+**Cases** — searchable case list with client, subject, status, priority, investigator, and recent activity.
+
+![IntelliCase Pro case details](docs/assets/case-details.png)
+
+**Case details** — a connected case workspace for investigation details, tasks, notes, evidence, time, and expenses.
+
+![IntelliCase Pro evidence register](docs/assets/evidence.png)
+
+**Evidence** — case-linked evidence intake and register for investigative records.
+
 ## Product at a glance
 
 | Area | Implementation |
