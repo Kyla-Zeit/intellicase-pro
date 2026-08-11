@@ -38,7 +38,7 @@ jobs:
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
-            set -euo pipefail
+            set -eu
             cd android
             chmod +x gradlew
             ./gradlew :app:assembleDebug --no-daemon
