@@ -1,0 +1,117 @@
+name: Capture Android README screenshots
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android emulator image
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "emulator" "platforms;android-35" "system-images;android-35;google_apis;x86_64"
+          echo "no" | avdmanager create avd -n intellicase-readme -k "system-images;android-35;google_apis;x86_64" --force
+
+      - name: Build Android app
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --no-daemon
+
+      - name: Boot emulator
+        run: |
+          sudo chmod 666 /dev/kvm || true
+          nohup "$ANDROID_HOME/emulator/emulator" -avd intellicase-readme -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -skin 1080x2400 > /tmp/emulator.log 2>&1 &
+          adb wait-for-device
+          for i in {1..120}; do
+            BOOT=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+            if [ "$BOOT" = "1" ]; then
+              break
+            fi
+            sleep 2
+          done
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global animator_duration_scale 0
+          adb shell wm size 1080x2400
+          adb shell wm density 420
+          adb shell input keyevent 82 || true
+
+      - name: Install and capture real app screens
+        run: |
+          set -euo pipefail
+          mkdir -p docs/assets/android
+          adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+          adb shell am force-stop com.intellicasepro.mobile
+          adb shell am start -n com.intellicasepro.mobile/.MainActivity
+          sleep 3
+
+          cat > /tmp/tap_node.py <<'PY'
+          import re, subprocess, sys, time, xml.etree.ElementTree as ET
+
+          target = sys.argv[1]
+          kind = sys.argv[2] if len(sys.argv) > 2 else "text"
+
+          for _ in range(20):
+              subprocess.run(["adb", "shell", "uiautomator", "dump", "/sdcard/window.xml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+              subprocess.run(["adb", "pull", "/sdcard/window.xml", "/tmp/window.xml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+              try:
+                  root = ET.parse('/tmp/window.xml').getroot()
+              except Exception:
+                  time.sleep(0.5)
+                  continue
+              attr = 'content-desc' if kind == 'desc' else 'text'
+              for node in root.iter('node'):
+                  if node.attrib.get(attr) == target:
+                      m = re.match(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', node.attrib['bounds'])
+                      if m:
+                          x1, y1, x2, y2 = map(int, m.groups())
+                          subprocess.check_call(['adb','shell','input','tap',str((x1+x2)//2),str((y1+y2)//2)])
+                          time.sleep(1.5)
+                          sys.exit(0)
+              time.sleep(0.5)
+          print(f'Could not find {kind} node: {target}', file=sys.stderr)
+          sys.exit(1)
+          PY
+
+          python /tmp/tap_node.py "Open workspace" text
+          adb exec-out screencap -p > docs/assets/android/dashboard.png
+
+          python /tmp/tap_node.py "Cases" desc
+          adb exec-out screencap -p > docs/assets/android/cases.png
+
+          python /tmp/tap_node.py "Evidence" desc
+          adb exec-out screencap -p > docs/assets/android/evidence.png
+
+          python /tmp/tap_node.py "Reports" desc
+          adb exec-out screencap -p > docs/assets/android/reports.png
+
+          file docs/assets/android/*.png
+
+      - name: Commit Android screenshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/assets/android/*.png
+          if git diff --cached --quiet; then
+            echo "Android screenshots are already current."
+            exit 0
+          fi
+          git commit -m "Add real IntelliCase Pro Android screenshots"
+          git push
