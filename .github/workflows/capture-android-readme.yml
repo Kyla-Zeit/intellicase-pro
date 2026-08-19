@@ -1,15 +1,16 @@
 name: Capture Android README screenshots
 
+# Emulator-driven screenshot capture is intentionally manual. It is useful for
+# refreshing README images, but it should not be able to fail every normal push
+# and put a red X on otherwise healthy commits.
 on:
-  push:
-    branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   capture:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
 
     steps:
@@ -101,5 +102,5 @@ jobs:
             echo "Android screenshots are already current."
             exit 0
           fi
-          git commit -m "Add real IntelliCase Pro Android screenshots"
+          git commit -m "Refresh real IntelliCase Pro Android screenshots"
           git push
